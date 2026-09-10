@@ -5,6 +5,7 @@ import { Eye, EyeOff, LogIn, UserRound, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/skeleton"
 import type { ApiErrorResponse } from "@/contracts"
 import { useLogin, useLogout, useSession } from "@/hooks/useAuth"
 
@@ -14,7 +15,7 @@ export function LoginModal({ mobile = false }: { mobile?: boolean }) {
   const [mode, setMode] = useState<"login" | "register">("login")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const { data: session } = useSession()
+  const { data: session, isPending: isSessionPending } = useSession()
   const login = useLogin()
   const logout = useLogout()
   const isRegister = mode === "register"
@@ -41,6 +42,10 @@ export function LoginModal({ mobile = false }: { mobile?: boolean }) {
   }
 
   const loginError = axios.isAxiosError<ApiErrorResponse>(login.error) ? login.error.response?.data.message : undefined
+
+  if (isSessionPending) {
+    return <div role="status" aria-label="Carregando sessão"><Skeleton className={mobile ? "size-12 rounded-full bg-[#261812]" : "h-[35px] w-[100px] bg-[#261812]"} /></div>
+  }
 
   if (session) {
     return <Button type="button" variant={mobile ? "ghost" : "kurio"} disabled={logout.isPending} onClick={() => logout.mutate()} aria-label={mobile ? `Sair da conta de ${session.user.displayName}` : undefined} title={mobile ? session.user.displayName : undefined} className={mobile ? "size-12 rounded-full text-[#E89B55] hover:bg-[#3A230E]" : "h-[35px] w-[100px] gap-2 rounded-md px-2 text-base font-medium"}><UserRound className="size-5" aria-hidden="true" />{!mobile && <span>Sair</span>}</Button>

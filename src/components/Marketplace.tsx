@@ -3,6 +3,7 @@ import { ChevronRight, Heart, X } from "lucide-react"
 import { Dialog } from "@base-ui/react/dialog"
 import { CatalogFiltersContext } from "@/lib/catalogFiltersContext"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Link } from "@tanstack/react-router"
 import type { BlockchainNetwork, CatalogTab, ListNftsParams, NftSort } from "@/contracts"
 import { useNfts } from "@/hooks/useNfts"
@@ -18,15 +19,19 @@ function CatalogSkeleton() {
   return (
     <div aria-label="Carregando catálogo" role="status" className="grid grid-cols-2 items-start gap-x-4 gap-y-5 lg:gap-x-8 lg:gap-y-16 xl:grid-cols-3">
       {Array.from({ length: 9 }, (_, index) => (
-        <div key={index} className={`animate-pulse ${index % 2 === 1 ? "translate-y-7 lg:translate-y-0" : ""}`}>
-          <div className="aspect-[1/1.08] rounded-[22px] bg-[#261812] lg:aspect-square lg:rounded-none" />
-          <div className="mt-3 h-4 w-3/4 rounded bg-[#261812]" />
-          <div className="mt-2 h-4 w-1/2 rounded bg-[#261812]" />
+        <div key={index} className={index % 2 === 1 ? "translate-y-7 lg:translate-y-0" : ""}>
+          <Skeleton className="aspect-[1/1.08] rounded-[22px] bg-[#261812] lg:aspect-square lg:rounded-none" />
+          <Skeleton className="mt-3 h-4 w-3/4 bg-[#261812]" />
+          <Skeleton className="mt-2 h-4 w-1/2 bg-[#261812]" />
         </div>
       ))}
       <span className="sr-only">Carregando NFTs...</span>
     </div>
   )
+}
+
+function FacetSkeleton() {
+  return <div aria-hidden="true" className="space-y-3">{Array.from({ length: 4 }, (_, index) => <Skeleton key={index} className={`h-5 bg-[#38231A] ${index % 2 ? "w-4/5" : "w-full"}`} />)}</div>
 }
 
 export function Marketplace() {
@@ -59,7 +64,7 @@ export function Marketplace() {
         <div className="space-y-10 bg-[#261812] px-5 py-5">
           <div>
             <h2 className="mb-2 text-base font-bold">Coleções</h2>
-            {(data?.facets.categories ?? []).map((item) => (
+            {isPending ? <FacetSkeleton /> : (data?.facets.categories ?? []).map((item) => (
               <button key={item.value} type="button" aria-pressed={category === item.value} className={`${filterClass} ${category === item.value ? "text-[#E89B55]" : "text-[#CFB28C]"}`} onClick={() => { setCategory(category === item.value ? null : item.value); setPage(1) }}>
                 <span>{item.label}</span><span>({item.count})</span>
               </button>
@@ -76,7 +81,7 @@ export function Marketplace() {
           </fieldset>
           <div>
             <h2 className="mb-2 text-base font-bold">Rede</h2>
-            {(data?.facets.networks ?? []).map((item) => (
+            {isPending ? <FacetSkeleton /> : (data?.facets.networks ?? []).map((item) => (
               <button key={item.value} type="button" aria-pressed={network === item.value} className={`${filterClass} ${network === item.value ? "text-[#E89B55]" : "text-[#CFB28C]"}`} onClick={() => { const next = item.value as BlockchainNetwork; setNetwork(network === next ? null : next); setPage(1) }}>
                 <span>{item.label}</span><span>({item.count})</span>
               </button>

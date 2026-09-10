@@ -33,7 +33,7 @@ export interface Quote {
 
 export interface CreateQuoteRequest {
   couponCode?: string
+  acceptChanges?: boolean
 }
 
 export type CreateQuoteResponse = Quote
-

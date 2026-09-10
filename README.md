@@ -11,9 +11,11 @@ Credenciais fictícias disponíveis nos handlers:
 
 O login, a recuperação da sessão, o logout, o catálogo e o detalhe do NFT já consomem essa API simulada por Axios e TanStack Query.
 
-O carrinho também utiliza a API simulada: pode receber itens do detalhe, alterar quantidades e remover itens, persiste após refresh e une o estado visitante à conta autenticada. O cenário `cart-error` permite verificar o rollback das atualizações otimistas.
+O carrinho também utiliza a API simulada: pode receber itens do detalhe, alterar quantidades e remover itens, persiste após refresh e une o estado visitante à conta autenticada. O cenário `cart-error` permite verificar o rollback das atualizações otimistas. O resumo vem de `POST /api/quotes`, valida cupons, recalcula após mutations e exige aceite quando preço ou estoque divergem do carrinho. Cupons válidos para demonstração: `KURIO10` (10%) e `GENESIS` (0,50 ETH, limitado ao subtotal).
 
-O estado simulado persiste no `localStorage`. Use `POST /api/__mock/reset` para restaurar as fixtures ou `POST /api/__mock/scenario` com `{ "scenario": "empty-catalog" }` para selecionar um cenário. Os cenários atuais são `default`, `slow-network`, `empty-catalog`, `server-error`, `expired-session` e `cart-error`.
+O estado simulado persiste no `localStorage`. Use `POST /api/__mock/reset` para restaurar as fixtures ou `POST /api/__mock/scenario` com `{ "scenario": "empty-catalog" }` para selecionar um cenário. Os cenários atuais são `default`, `slow-network`, `empty-catalog`, `server-error`, `expired-session`, `cart-error`, `invalid-coupon`, `expired-coupon`, `price-changed`, `edition-sold-out` e `quote-expired`.
+
+O evento `nft.updated` usa `socket.io-client` sobre WebSocket e é interceptado pelo MSW com `@mswjs/socket.io-binding`. Para reproduzir uma atualização enquanto o carrinho estiver aberto, envie `POST /api/__mock/scenario` com `{ "scenario": "price-changed" }` ou `{ "scenario": "edition-sold-out" }`. O mesmo estado atualizado passa a ser retornado pela API REST. Fora dos mocks, `VITE_SOCKET_URL` pode apontar para o servidor Socket.IO; vazio utiliza a origem da aplicação.
 
 ## Verificação de responsividade
 

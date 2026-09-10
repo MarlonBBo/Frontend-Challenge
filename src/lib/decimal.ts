@@ -20,3 +20,24 @@ export function addDecimals(values: string[]) {
 
   return precision ? `${integer}.${fraction}` : integer.toString()
 }
+
+export function percentageOfDecimal(value: string, percentage: number, precision = 3) {
+  const [integer, fraction = ""] = value.split(".")
+  const sourceScale = 10n ** BigInt(fraction.length)
+  const targetScale = 10n ** BigInt(precision)
+  const units = BigInt(`${integer}${fraction}`)
+  const result = units * BigInt(percentage) * targetScale / (100n * sourceScale)
+  const resultInteger = result / targetScale
+  const resultFraction = (result % targetScale).toString().padStart(precision, "0")
+  return precision ? `${resultInteger}.${resultFraction}` : resultInteger.toString()
+}
+
+export function compareDecimals(left: string, right: string) {
+  const precision = Math.max(left.split(".")[1]?.length ?? 0, right.split(".")[1]?.length ?? 0)
+  const toUnits = (value: string) => {
+    const [integer, fraction = ""] = value.split(".")
+    return BigInt(`${integer}${fraction.padEnd(precision, "0")}`)
+  }
+  const difference = toUnits(left) - toUnits(right)
+  return difference === 0n ? 0 : difference > 0n ? 1 : -1
+}

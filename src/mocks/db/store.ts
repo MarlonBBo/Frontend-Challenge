@@ -20,6 +20,7 @@ function initialState(): MockDatabase {
     carts: cartFixture,
     wallets: walletFixture,
     orders: {},
+    quotes: {},
     nfts: nftFixture,
   })
 }
@@ -35,7 +36,7 @@ function load(): MockDatabase {
   if (serialized) {
     try {
       const parsed = JSON.parse(serialized) as MockDatabase
-      if (parsed.schemaVersion === 1) return parsed
+      if (parsed.schemaVersion === 1) return { ...parsed, quotes: parsed.quotes ?? {} }
     } catch {
       storage?.removeItem(STORAGE_KEY)
     }
@@ -65,4 +66,3 @@ export const mockDb = {
     return clone(database)
   },
 }
-

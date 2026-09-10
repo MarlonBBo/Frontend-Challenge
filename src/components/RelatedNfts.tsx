@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Link } from "@tanstack/react-router"
 import type { Nft } from "@/contracts"
 import { useNfts } from "@/hooks/useNfts"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const featuredIds = ["3", "4", "5", "6", "8"]
 
@@ -17,7 +18,7 @@ export function RelatedNfts({ nft }: { nft: Nft }) {
     .slice(0, 15)
   const pages = Math.ceil(related.length / 5)
 
-  if (isPending) return <div role="status" className="mt-16 h-52 animate-pulse rounded-xl bg-[#261812]"><span className="sr-only">Carregando NFTs relacionados...</span></div>
+  if (isPending) return <div role="status" className="mt-16"><span className="sr-only">Carregando NFTs relacionados...</span><Skeleton className="h-6 w-48 bg-[#261812]" /><div className="mt-8 grid grid-cols-2 gap-4 sm:gap-5 xl:grid-cols-5">{Array.from({ length: 5 }, (_, index) => <div key={index} className={index > 1 ? "hidden xl:block" : ""}><Skeleton className="aspect-square bg-[#261812]" /><Skeleton className="mt-3 h-4 w-3/4 bg-[#261812]" /><Skeleton className="mt-2 h-4 w-1/2 bg-[#261812]" /></div>)}</div></div>
   if (!related.length) return null
 
   return (

@@ -3,6 +3,7 @@ import { Link, useParams } from "@tanstack/react-router"
 import axios from "axios"
 import { ArrowLeft, Copy, Heart, Mail, Minus, Plus, Search, ShoppingCart, Star, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import type { ApiErrorResponse, Nft } from "@/contracts"
 import { RelatedNfts } from "@/components/RelatedNfts"
 import { useNft } from "@/hooks/useNfts"
@@ -14,12 +15,34 @@ type EditionLabel = "1/1" | "1/10" | "1/50" | "ABERTA"
 const views = ["Completa", "Retrato", "Detalhe", "Composição"]
 const crops = ["scale-100", "scale-125 origin-top", "scale-150 origin-center", "scale-110 origin-bottom"]
 
+function NftDetailSkeleton() {
+  return (
+    <div role="status" aria-label="Carregando detalhes do NFT" className="mx-auto -mt-7 w-full max-w-[1200px] sm:mt-8">
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
+        <div className="grid gap-6 sm:grid-cols-[100px_minmax(0,1fr)]">
+          <div className="hidden space-y-3 sm:block">{Array.from({ length: 4 }, (_, index) => <Skeleton key={index} className="aspect-square bg-[#261812]" />)}</div>
+          <Skeleton className="aspect-square rounded-[24px] bg-[#261812]" />
+        </div>
+        <div className="space-y-4 pt-4 xl:pt-0">
+          <Skeleton className="h-8 w-2/3 bg-[#261812]" />
+          <Skeleton className="h-6 w-1/3 bg-[#261812]" />
+          <Skeleton className="h-20 w-full bg-[#261812]" />
+          <div className="flex gap-2">{Array.from({ length: 4 }, (_, index) => <Skeleton key={index} className="h-7 w-14 rounded-full bg-[#261812]" />)}</div>
+          <Skeleton className="h-12 w-full bg-[#261812]" />
+          <Skeleton className="h-20 w-4/5 bg-[#261812]" />
+        </div>
+      </div>
+      <span className="sr-only">Carregando NFT...</span>
+    </div>
+  )
+}
+
 export function NftDetailPage() {
   const { nftId } = useParams({ from: "/mercado/$nftId" })
   const { data: nft, isPending, error, refetch } = useNft(nftId)
 
   if (isPending) {
-    return <div role="status" aria-label="Carregando detalhes do NFT" className="mx-auto -mt-7 grid w-full max-w-[1200px] animate-pulse gap-8 sm:mt-8 xl:grid-cols-2"><div className="aspect-square rounded-[24px] bg-[#261812]" /><div className="space-y-4 pt-4"><div className="h-8 w-2/3 rounded bg-[#261812]" /><div className="h-5 w-1/3 rounded bg-[#261812]" /><div className="h-24 rounded bg-[#261812]" /></div><span className="sr-only">Carregando NFT...</span></div>
+    return <NftDetailSkeleton />
   }
 
   if (axios.isAxiosError(error) && error.response?.status === 404) return <NotFoundPage />

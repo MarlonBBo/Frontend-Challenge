@@ -4,6 +4,7 @@ import { Footer } from "./components/Footer"
 import { useState } from "react"
 import { CatalogFiltersContext } from "./lib/catalogFiltersContext"
 import { MobileNavigation } from "./components/MobileNavigation"
+import { RealtimeSync } from "./components/RealtimeSync"
 
 function App() {
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -11,6 +12,7 @@ function App() {
   const isCart = pathname === "/mercado/carrinho"
   return (
     <CatalogFiltersContext.Provider value={{ open: filtersOpen, setOpen: setFiltersOpen }}>
+    <RealtimeSync />
     <div className={`min-h-svh px-5 pt-9 sm:px-8 lg:py-6 xl:px-[max(32px,calc((100vw-1200px)/2))] ${isCart ? "pb-0" : "pb-[calc(110px+env(safe-area-inset-bottom))]"}`}>
       <Header />
       <main>

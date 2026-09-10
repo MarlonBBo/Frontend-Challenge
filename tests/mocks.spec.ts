@@ -169,3 +169,94 @@ test("O login une o carrinho visitante sem vazar itens para outro usuário.", as
   await login("bruno@kurio.test", "Arte456!")
   expect(await cartNames()).not.toContain("Sage Nomad")
 })
+
+test("A cotação da API calcula o resumo e aplica ou remove cupom.", async ({ page }) => {
+  await page.goto("/mercado/carrinho")
+  await expect(page.getByText("8.156 ETH")).toBeVisible()
+
+  const coupon = page.getByLabel("Código promocional")
+  await coupon.fill("kurio10")
+  await page.getByRole("button", { name: "Aplicar" }).click()
+  await expect(page.getByText("(-) 0.814")).toBeVisible()
+  await expect(page.getByText("7.342 ETH")).toBeVisible()
+
+  await page.getByRole("button", { name: "Remover cupom KURIO10" }).click()
+  await expect(page.getByText("8.156 ETH")).toBeVisible()
+  await page.getByRole("button", { name: "Conectar e finalizar" }).click()
+  await expect(page.getByRole("heading", { name: "Pagamento" })).toBeVisible()
+})
+
+test("Cupons inválidos e expirados exibem o erro retornado pela API.", async ({ page }) => {
+  await page.goto("/mercado/carrinho")
+  const coupon = page.getByLabel("Código promocional")
+
+  await coupon.fill("NAOEXISTE")
+  await page.getByRole("button", { name: "Aplicar" }).click()
+  await expect(page.getByRole("alert")).toContainText("Código promocional inválido")
+
+  await coupon.fill("EXPIRED")
+  await page.getByRole("button", { name: "Aplicar" }).click()
+  await expect(page.getByRole("alert")).toContainText("Este cupom expirou")
+})
+
+test("Mudança de preço exige aceite antes de liberar o checkout.", async ({ page }) => {
+  await page.evaluate(() => fetch("/api/__mock/scenario", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ scenario: "price-changed" }),
+  }))
+  await page.goto("/mercado/carrinho")
+
+  const checkout = page.getByRole("button", { name: "Conectar e finalizar" })
+  await expect(page.getByText("O carrinho mudou desde a última cotação.")).toBeVisible()
+  await expect(page.getByText(/preço atualizado de 1\.19 para 1\.29 ETH/)).toBeVisible()
+  await expect(checkout).toBeDisabled()
+
+  await page.getByRole("button", { name: "Aceitar alterações" }).click()
+  await expect(page.getByText("O carrinho mudou desde a última cotação.")).not.toBeVisible()
+  await expect(checkout).toBeEnabled()
+})
+
+test("Cotação expirada bloqueia o checkout.", async ({ page }) => {
+  await page.evaluate(() => fetch("/api/__mock/scenario", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ scenario: "quote-expired" }),
+  }))
+  await page.goto("/mercado/carrinho")
+
+  await expect(page.getByText("Esta cotação expirou. Atualize antes de continuar.")).toBeVisible()
+  await expect(page.getByRole("button", { name: "Conectar e finalizar" })).toBeDisabled()
+})
+
+test("Edição esgotada é removida somente após aceite explícito.", async ({ page }) => {
+  await page.evaluate(() => fetch("/api/__mock/scenario", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ scenario: "edition-sold-out" }),
+  }))
+  await page.goto("/mercado/carrinho")
+
+  await expect(page.getByText("Emerald Ape esgotou nesta edição.")).toBeVisible()
+  await page.getByRole("button", { name: "Aceitar alterações" }).click()
+  await expect(page.getByRole("heading", { name: "Emerald Ape #042" })).not.toBeVisible()
+  await expect(page.getByRole("button", { name: "Conectar e finalizar" })).toBeEnabled()
+})
+
+test("Socket.IO atualiza a cotação enquanto o carrinho está aberto.", async ({ page }) => {
+  await page.goto("/mercado/carrinho")
+  await expect(page.getByText("8.156 ETH")).toBeVisible()
+  await expect.poll(() => page.evaluate(async () => {
+    const response = await fetch("/api/__mock/realtime")
+    return ((await response.json()) as { connectedClients: number }).connectedClients
+  })).toBeGreaterThan(0)
+
+  await page.evaluate(() => fetch("/api/__mock/scenario", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ scenario: "price-changed" }),
+  }))
+
+  await expect(page.getByText(/preço atualizado de 1\.19 para 1\.29 ETH/)).toBeVisible()
+  await expect(page.getByRole("button", { name: "Conectar e finalizar" })).toBeDisabled()
+})

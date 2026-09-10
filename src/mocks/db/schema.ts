@@ -1,4 +1,4 @@
-import type { Cart, CollectorProfile, Favorite, Nft, Order, Session, Wallet } from "@/contracts"
+import type { Cart, CollectorProfile, Favorite, Nft, Order, Quote, Session, Wallet } from "@/contracts"
 import type { MockUserRecord } from "@/mocks/fixtures/users"
 import type { MockScenarioId } from "@/mocks/scenarios"
 
@@ -16,6 +16,6 @@ export interface MockDatabase {
   carts: Record<string, Cart>
   wallets: Record<string, Wallet[]>
   orders: Record<string, Order>
+  quotes: Record<string, Quote>
   nfts: Nft[]
 }
-
