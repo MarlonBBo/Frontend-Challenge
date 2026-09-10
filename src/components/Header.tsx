@@ -3,6 +3,7 @@ import { Link, useLocation } from "@tanstack/react-router"
 import { useContext } from "react"
 import { CatalogFiltersContext } from "@/lib/catalogFiltersContext"
 import { LoginModal } from "@/components/LoginModal"
+import { useCart } from "@/hooks/useCart"
 
 const navItems = [
   { label: "Início", to: "/" },
@@ -14,6 +15,8 @@ const navItems = [
 export function Header() {
   const { setOpen } = useContext(CatalogFiltersContext)
   const pathname = useLocation({ select: (location) => location.pathname })
+  const { data: cart } = useCart()
+  const cartQuantity = cart?.items.reduce((total, item) => total + item.quantity, 0) ?? 0
   const isNftDetail = /^\/mercado\/\d+\/?$/.test(pathname)
   const hideMobileHeader = isNftDetail || pathname === "/mercado/carrinho"
   return (
@@ -56,12 +59,10 @@ export function Header() {
         <Link
           to="/mercado/carrinho"
           className="relative h-6 w-[31px] shrink-0 border-0 bg-transparent p-0 text-[#F5F1EB] transition-colors hover:text-[#E89B55] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#E89B55]"
-          aria-label="Carrinho com 6 itens"
+          aria-label={`Carrinho com ${cartQuantity} ${cartQuantity === 1 ? "item" : "itens"}`}
         >
           <ShoppingCart className="absolute left-0 top-0 size-6" strokeWidth={2} aria-hidden="true" />
-          <span className="absolute right-0 top-0 grid size-4 place-items-center rounded-full border-2 border-[#140D0A] bg-[#D28A4C] text-[10px] font-medium leading-none text-[#140D0A]">
-            6
-          </span>
+          {cartQuantity > 0 && <span className="absolute right-0 top-0 grid size-4 place-items-center rounded-full border-2 border-[#140D0A] bg-[#D28A4C] text-[10px] font-medium leading-none text-[#140D0A]">{cartQuantity > 9 ? "9+" : cartQuantity}</span>}
         </Link>
 
         <LoginModal />

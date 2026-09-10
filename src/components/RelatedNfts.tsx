@@ -1,20 +1,23 @@
 import { useState } from "react"
 import { Link } from "@tanstack/react-router"
-import { nfts, type Nft } from "@/data/nfts"
+import type { Nft } from "@/contracts"
+import { useNfts } from "@/hooks/useNfts"
 
-const featuredIds = [3, 4, 5, 6, 8]
+const featuredIds = ["3", "4", "5", "6", "8"]
 
 export function RelatedNfts({ nft }: { nft: Nft }) {
   const [page, setPage] = useState(0)
-  const related = nfts
+  const { data, isPending } = useNfts({ collectionId: nft.collectionId, tab: "all", sort: "recent", page: 1, pageSize: 50 })
+  const related = (data?.items ?? [])
     .filter((item) => item.collectionName === nft.collectionName && item.id !== nft.id)
     .sort((a, b) => {
-      const rank = (id: number) => featuredIds.includes(id) ? featuredIds.indexOf(id) : featuredIds.length + id
+      const rank = (id: string) => featuredIds.includes(id) ? featuredIds.indexOf(id) : featuredIds.length + Number(id)
       return rank(a.id) - rank(b.id)
     })
     .slice(0, 15)
   const pages = Math.ceil(related.length / 5)
 
+  if (isPending) return <div role="status" className="mt-16 h-52 animate-pulse rounded-xl bg-[#261812]"><span className="sr-only">Carregando NFTs relacionados...</span></div>
   if (!related.length) return null
 
   return (
@@ -25,10 +28,10 @@ export function RelatedNfts({ nft }: { nft: Nft }) {
           <article key={item.id}>
             <Link to="/mercado/$nftId" params={{ nftId: String(item.id) }} className="group block rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#D28A4C]">
               <div className="bg-[#261812] px-1 py-4">
-                <img src={item.image} alt="" width={220} height={220} loading="lazy" className="aspect-square w-full rounded-[14px] object-cover transition-opacity group-hover:opacity-90" />
+                <img src={item.imageUrl} alt="" width={220} height={220} loading="lazy" className="aspect-square w-full rounded-[14px] object-cover transition-opacity group-hover:opacity-90" />
               </div>
-              <h3 className="mt-3 text-sm leading-5 text-[#F5F1EB]">{item.name} #{String(item.number).padStart(3, "0")}</h3>
-              <p className="text-sm font-bold leading-5 text-[#E89B55]">{item.price.toFixed(2)} ETH</p>
+              <h3 className="mt-3 text-sm leading-5 text-[#F5F1EB]">{item.name} #{item.tokenId.slice(-3)}</h3>
+              <p className="text-sm font-bold leading-5 text-[#E89B55]">{item.priceEth} ETH</p>
             </Link>
           </article>
         ))}

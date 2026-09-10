@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test"
 
-test("layouts fit the viewport", async ({ page }, testInfo) => {
+test("os layouts se ajustam à viewport", async ({ page }, testInfo) => {
   const errors: string[] = []
   page.on("pageerror", (error) => errors.push(error.message))
   for (const path of ["/", "/mercado", "/mercado/0", "/mercado/carrinho", "/mercado/pagamento", "/criadores", "/aprenda"]) {
@@ -14,7 +14,7 @@ test("layouts fit the viewport", async ({ page }, testInfo) => {
   expect(errors).toEqual([])
 })
 
-test("login and registration remain accessible", async ({ page }, testInfo) => {
+test("O login e o cadastro permanecem acessíveis.", async ({ page }, testInfo) => {
   await page.goto("/")
   const trigger = testInfo.project.name === "desktop"
     ? page.getByRole("button", { name: "Entrar", exact: true })
@@ -32,7 +32,7 @@ test("login and registration remain accessible", async ({ page }, testInfo) => {
   await expect(trigger).toBeFocused()
 })
 
-test("mobile filters open without blocking navigation", async ({ page }, testInfo) => {
+test("filtros para dispositivos móveis abrem sem bloquear a navegação", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "desktop", "Desktop uses the sidebar")
   await page.goto("/")
   await page.getByRole("link", { name: "Abrir filtros" }).click()

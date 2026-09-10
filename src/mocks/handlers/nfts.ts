@@ -32,6 +32,7 @@ export const nftHandlers = [
 
     const url = new URL(request.url)
     const search = url.searchParams.get("search")?.trim().toLocaleLowerCase("pt-BR")
+    const collectionId = url.searchParams.get("collectionId")
     const category = url.searchParams.get("category")
     const network = url.searchParams.get("network")
     const tab = url.searchParams.get("tab")
@@ -43,6 +44,7 @@ export const nftHandlers = [
 
     let filtered = scenario.emptyCatalog ? [] : database.nfts.filter((nft) =>
       (!search || `${nft.name} ${nft.collectionName} ${nft.tokenId}`.toLocaleLowerCase("pt-BR").includes(search)) &&
+      (!collectionId || nft.collectionId === collectionId) &&
       (!category || nft.category === category) &&
       (!network || nft.network === network) &&
       (!minPrice || Number(nft.priceEth) >= Number(minPrice)) &&
@@ -86,4 +88,3 @@ export const nftHandlers = [
     return HttpResponse.json<GetNftResponse>(nft)
   }),
 ]
-

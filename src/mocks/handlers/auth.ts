@@ -2,6 +2,7 @@ import { delay, http, HttpResponse } from "msw"
 import type { ApiErrorResponse, GetSessionResponse, LoginRequest, LoginResponse, LogoutResponse } from "@/contracts"
 import { mockDb } from "@/mocks/db/store"
 import { mockScenarios } from "@/mocks/scenarios"
+import { mergeGuestCart } from "@/mocks/cartState"
 
 const SESSION_COOKIE = "kurio_session"
 
@@ -40,6 +41,7 @@ export const authHandlers = [
 
     mockDb.update((draft) => {
       draft.sessions[sessionId] = { id: sessionId, ...session }
+      mergeGuestCart(draft, user.id, request)
     })
 
     return HttpResponse.json<LoginResponse>({ session }, {
@@ -76,4 +78,3 @@ export const authHandlers = [
     })
   }),
 ]
-

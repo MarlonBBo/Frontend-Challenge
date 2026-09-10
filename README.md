@@ -9,7 +9,11 @@ Credenciais fictícias disponíveis nos handlers:
 - `ana@kurio.test` / `Kurio123!`
 - `bruno@kurio.test` / `Arte456!`
 
-O estado simulado persiste no `localStorage`. Use `POST /api/__mock/reset` para restaurar as fixtures ou `POST /api/__mock/scenario` com `{ "scenario": "empty-catalog" }` para selecionar um cenário. Os cenários atuais são `default`, `slow-network`, `empty-catalog`, `server-error` e `expired-session`.
+O login, a recuperação da sessão, o logout, o catálogo e o detalhe do NFT já consomem essa API simulada por Axios e TanStack Query.
+
+O carrinho também utiliza a API simulada: pode receber itens do detalhe, alterar quantidades e remover itens, persiste após refresh e une o estado visitante à conta autenticada. O cenário `cart-error` permite verificar o rollback das atualizações otimistas.
+
+O estado simulado persiste no `localStorage`. Use `POST /api/__mock/reset` para restaurar as fixtures ou `POST /api/__mock/scenario` com `{ "scenario": "empty-catalog" }` para selecionar um cenário. Os cenários atuais são `default`, `slow-network`, `empty-catalog`, `server-error`, `expired-session` e `cart-error`.
 
 ## Verificação de responsividade
 

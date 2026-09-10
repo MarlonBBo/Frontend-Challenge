@@ -1,23 +1,53 @@
-import { useState } from "react"
+import { useState, type FormEvent } from "react"
+import axios from "axios"
 import { Dialog } from "@base-ui/react/dialog"
 import { Eye, EyeOff, LogIn, UserRound, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import type { ApiErrorResponse } from "@/contracts"
+import { useLogin, useLogout, useSession } from "@/hooks/useAuth"
 
 export function LoginModal({ mobile = false }: { mobile?: boolean }) {
+  const [open, setOpen] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [mode, setMode] = useState<"login" | "register">("login")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const { data: session } = useSession()
+  const login = useLogin()
+  const logout = useLogout()
   const isRegister = mode === "register"
   const fieldClass = "h-9 w-full rounded-sm border border-[#D28A4C]/20 bg-transparent px-3 text-xs placeholder:text-[#A58A58] focus-visible:outline-2 focus-visible:outline-[#D28A4C]"
 
   function changeMode(next: "login" | "register") {
     setMode(next)
     setShowPassword(false)
+    login.reset()
+  }
+
+  function handleOpenChange(nextOpen: boolean) {
+    setOpen(nextOpen)
+    if (!nextOpen) {
+      changeMode("login")
+      setPassword("")
+    }
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (isRegister) return
+    login.mutate({ email, password }, { onSuccess: () => handleOpenChange(false) })
+  }
+
+  const loginError = axios.isAxiosError<ApiErrorResponse>(login.error) ? login.error.response?.data.message : undefined
+
+  if (session) {
+    return <Button type="button" variant={mobile ? "ghost" : "kurio"} disabled={logout.isPending} onClick={() => logout.mutate()} aria-label={mobile ? `Sair da conta de ${session.user.displayName}` : undefined} title={mobile ? session.user.displayName : undefined} className={mobile ? "size-12 rounded-full text-[#E89B55] hover:bg-[#3A230E]" : "h-[35px] w-[100px] gap-2 rounded-md px-2 text-base font-medium"}><UserRound className="size-5" aria-hidden="true" />{!mobile && <span>Sair</span>}</Button>
   }
 
   return (
-    <Dialog.Root onOpenChange={() => changeMode("login")}>
+    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Trigger aria-label={mobile ? "Abrir perfil e login" : undefined} render={<Button variant={mobile ? "ghost" : "kurio"} className={mobile ? "size-12 rounded-full text-[#CFB28C] hover:bg-[#3A230E] hover:text-[#E89B55]" : "h-[35px] w-[100px] gap-2 rounded-md px-2 text-base font-medium leading-none"} />}>
         {mobile ? <UserRound className="size-5 fill-current" aria-hidden="true" /> : <><LogIn className="size-5" strokeWidth={1.5} aria-hidden="true" /><span>Entrar</span></>}
       </Dialog.Trigger>
@@ -39,16 +69,17 @@ export function LoginModal({ mobile = false }: { mobile?: boolean }) {
               {isRegister ? "Crie seu perfil de colecionador e conecte uma carteira quando quiser." : "Entre para gerenciar sua carteira, coleção e perfil de criador."}
             </Dialog.Description>
 
+            <form onSubmit={handleSubmit}>
             <div key={mode} className="mt-5 space-y-3">
               {isRegister && <div>
                 <Label htmlFor="register-username" className="sr-only">Nome de usuário</Label>
                 <Input id="register-username" autoComplete="username" placeholder="Nome de usuário" className={fieldClass} />
               </div>}
               <Label htmlFor="login-email" className="sr-only">E-mail</Label>
-              <Input id="login-email" type="email" autoComplete="email" placeholder={isRegister ? "Digite seu e-mail" : "contato@email.com"} className={fieldClass} />
+              <Input id="login-email" name="email" type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder={isRegister ? "Digite seu e-mail" : "contato@email.com"} className={fieldClass} />
               <div className="relative">
                 <Label htmlFor="login-password" className="sr-only">Senha</Label>
-                <Input id="login-password" type={showPassword ? "text" : "password"} autoComplete={isRegister ? "new-password" : "current-password"} placeholder={isRegister ? "Senha" : "***********"} className={`${fieldClass} pr-10`} />
+                <Input id="login-password" name="password" type={showPassword ? "text" : "password"} required autoComplete={isRegister ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} placeholder={isRegister ? "Senha" : "***********"} className={`${fieldClass} pr-10`} />
                 <button type="button" aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"} aria-pressed={showPassword} onClick={() => setShowPassword(!showPassword)} className="absolute top-0 right-0 grid size-9 place-items-center text-[#A58A58] focus-visible:outline-2 focus-visible:outline-[#D28A4C]">
                   {showPassword ? <Eye className="size-4" aria-hidden="true" /> : <EyeOff className="size-4" aria-hidden="true" />}
                 </button>
@@ -59,7 +90,9 @@ export function LoginModal({ mobile = false }: { mobile?: boolean }) {
               </div>}
             </div>
             {!isRegister && <button type="button" disabled title="Recuperação de senha em breve" className="mt-2 block w-full text-right text-xs text-[#D28A4C]">Esqueceu a senha?</button>}
-            <Button disabled variant="kurio" className="mt-5 h-10 w-full rounded-sm text-sm font-bold disabled:opacity-100">{isRegister ? "Criar conta" : "Entrar"}</Button>
+            {loginError && <p role="alert" className="mt-3 text-xs text-[#E8794C]">{loginError}</p>}
+            <Button type="submit" disabled={isRegister || login.isPending} variant="kurio" className="mt-5 h-10 w-full rounded-sm text-sm font-bold disabled:opacity-60">{isRegister ? "Cadastro em breve" : login.isPending ? "Entrando..." : "Entrar"}</Button>
+            </form>
           </div>
 
           <div className="relative mt-7 border-t border-[#D28A4C]/10">

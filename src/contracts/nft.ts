@@ -37,6 +37,7 @@ export interface Nft {
 
 export interface ListNftsParams {
   search?: string
+  collectionId?: EntityId
   category?: string
   network?: BlockchainNetwork
   tab?: CatalogTab

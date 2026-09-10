@@ -1,6 +1,5 @@
-import { createRootRoute, createRoute, createRouter, notFound } from "@tanstack/react-router"
+import { createRootRoute, createRoute, createRouter } from "@tanstack/react-router"
 import { NftDetailPage } from "./pages/NftDetailPage"
-import { nfts } from "./data/nfts"
 import App from "./App"
 import { HomePage } from "./pages/HomePage"
 import { NotFoundPage } from "./pages/NotFoundPage"
@@ -20,11 +19,6 @@ const paymentRoute = createRoute({ getParentRoute: () => rootRoute, path: "/merc
 const nftRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/mercado/$nftId",
-  loader: ({ params }) => {
-    const nft = nfts.find((item) => String(item.id) === params.nftId)
-    if (!nft) throw notFound()
-    return nft
-  },
   component: NftDetailPage,
 })
 

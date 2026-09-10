@@ -17,3 +17,9 @@ export function useNfts(params: ListNftsParams) {
   })
 }
 
+export function useNft(nftId: string) {
+  return useQuery({
+    queryKey: nftKeys.detail(nftId),
+    queryFn: () => nftService.getById(nftId),
+  })
+}
